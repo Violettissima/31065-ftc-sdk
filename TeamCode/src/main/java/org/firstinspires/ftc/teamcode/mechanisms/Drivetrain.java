@@ -10,14 +10,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Drivetrain {
 
+    private final double STARTING_X = 0;
+    private final double STARTING_Y = 0;
+    private final double STARTING_H = 0;
     private DcMotor frDrive;
     private DcMotor flDrive;
     private DcMotor brDrive;
     private DcMotor blDrive;
     private SparkFunOTOS otos;
-    private Telemetry telemetry;
 
-    public void init(HardwareMap hardwareMap, Telemetry telemetry) {
+    public void init(HardwareMap hardwareMap) {
         frDrive = hardwareMap.get(DcMotor.class, "fr");
         flDrive = hardwareMap.get(DcMotor.class, "fl");
         brDrive = hardwareMap.get(DcMotor.class, "br");
@@ -34,7 +36,6 @@ public class Drivetrain {
         blDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         otos = hardwareMap.get(SparkFunOTOS.class, "otos");
         configureOtos();
-        this.telemetry = telemetry;
     }
 
     public void drive(double forward, double right, double rotate){
@@ -71,10 +72,6 @@ public class Drivetrain {
         flDrive.setPower(frontLeftPower);
         brDrive.setPower(backRightPower);
         blDrive.setPower(backLeftPower);
-
-        telemetry.addData("x", otos.getPosition().x);
-        telemetry.addData("y", otos.getPosition().y);
-        telemetry.addData("h", otos.getPosition().h);
     }
 
     private void configureOtos() {
@@ -91,6 +88,18 @@ public class Drivetrain {
         SparkFunOTOS.Version hwVersion = new SparkFunOTOS.Version();
         SparkFunOTOS.Version fwVersion = new SparkFunOTOS.Version();
         otos.getVersionInfo(hwVersion, fwVersion);
+    }
+
+    public double getX() {
+        return -otos.getPosition().y + STARTING_X;
+    }
+
+    public double getY() {
+        return otos.getPosition().x + STARTING_Y;
+    }
+
+    public double getH() {
+        return otos.getPosition().h + STARTING_H;
     }
 
 }
