@@ -24,10 +24,14 @@ public class Drivetrain {
         flDrive = hardwareMap.get(DcMotor.class, "fl");
         brDrive = hardwareMap.get(DcMotor.class, "br");
         blDrive = hardwareMap.get(DcMotor.class, "bl");
+        frDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        flDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        brDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        blDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        brDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        blDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        brDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        blDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         flDrive.setDirection(DcMotor.Direction.REVERSE);
         blDrive.setDirection(DcMotor.Direction.REVERSE);
         frDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

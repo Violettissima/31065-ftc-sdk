@@ -9,16 +9,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class Turret {
 
-    private final int TICKS_PER_REV = 384;
+    private final int TICKS_PER_REV = 774;
     private double encoder_offset = 0;
     private DcMotor motor;
     private Servo hood;
     public enum State {
         TRACK_A,
         TRACK_B,
-        IDLE
+        LOCKED
     }
-    private State state = State.IDLE;
+    private State state = State.LOCKED;
 
     public void update(double x, double y, double h) {
         double xRelative;
@@ -34,13 +34,17 @@ public class Turret {
                 yRelative = 54 - y;
                 aim(xRelative, yRelative, h);
                 break;
-            case IDLE:
+            case LOCKED:
+                setAngle(0);
                 break;
         }
     }
 
     public void init(HardwareMap hardwareMap) {
         motor = hardwareMap.get(DcMotor.class, "turret");
+        motor.setTargetPosition(0);
+        motor.setPower(0.3);
+        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         hood = hardwareMap.get(Servo.class, "hood");
@@ -56,8 +60,8 @@ public class Turret {
         setAngle(hRelative);
     }
 
-    private void setAngle(double degrees) {
+    public void setAngle(double degrees) {
         double safeDegrees = Range.clip(degrees, -180, 90);
-        motor.setTargetPosition((int) (safeDegrees * TICKS_PER_REV + encoder_offset));
+        motor.setTargetPosition((int) (safeDegrees / 360 * TICKS_PER_REV + encoder_offset));
     }
 }

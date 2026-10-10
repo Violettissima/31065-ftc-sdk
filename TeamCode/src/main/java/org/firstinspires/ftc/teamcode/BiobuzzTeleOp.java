@@ -26,6 +26,12 @@ public class BiobuzzTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        turret.update(drivetrain.getX(), drivetrain.getY(), drivetrain.getH());
+
+        turret.setState(Turret.State.TRACK_A);
+
         drivetrain.drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+
+        intake.run(gamepad2.right_trigger);
     }
 }
