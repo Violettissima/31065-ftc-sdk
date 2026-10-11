@@ -95,11 +95,11 @@ public class Drivetrain {
     }
 
     public double getX() {
-        return -otos.getPosition().y + STARTING_X;
+        return otos.getPosition().x + STARTING_X;
     }
 
     public double getY() {
-        return otos.getPosition().x + STARTING_Y;
+        return otos.getPosition().y + STARTING_Y;
     }
 
     public double getH() {
