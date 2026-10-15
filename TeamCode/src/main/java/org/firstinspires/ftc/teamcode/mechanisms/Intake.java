@@ -17,6 +17,7 @@ public class Intake {
         outerMotor = hardwareMap.get(DcMotor.class, "intake_outer");
         innerMotor = hardwareMap.get(DcMotor.class, "intake_inner");
         outerMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        innerMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         outerMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         innerMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         outerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -26,7 +27,7 @@ public class Intake {
         leftRoller.setDirection(DcMotor.Direction.REVERSE);
     }
 
-    public void run(double speed) {
+    public void setPower(double speed) {
         speed = Range.clip(speed, 0, 1);
         if (speed > 0) {
             innerMotor.setPower(speed);
@@ -34,7 +35,7 @@ public class Intake {
             leftRoller.setPower(1);
             rightRoller.setPower(1);
         } else {
-            innerMotor.setPower(0.2);
+            innerMotor.setPower(0);
             outerMotor.setPower(-0.2);
             leftRoller.setPower(0);
             rightRoller.setPower(0);
