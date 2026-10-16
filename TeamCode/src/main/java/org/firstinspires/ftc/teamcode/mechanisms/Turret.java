@@ -8,7 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class Turret {
 
-    private final int TICKS_PER_REV = 774;
+    private final int TICKS_PER_REV = 760;
     private double encoder_offset = 0;
     private DcMotor motor;
     public enum State {
@@ -19,18 +19,20 @@ public class Turret {
     private State state = State.LOCKED;
 
     public void update(double x, double y, double h) {
-        double xRelative;
-        double yRelative;
+        double shooterX = x + 5 * Math.sin(Math.toRadians(h));
+        double shooterY = y - 5 * Math.cos(Math.toRadians(h));
+        double relativeX;
+        double relativeY;
         switch(state) {
             case TRACK_A:
-                xRelative = 84 - x;
-                yRelative = 90 - y;
-                aim(xRelative, yRelative, h);
+                relativeX = 60 - shooterX;
+                relativeY = 60 - shooterY;
+                aim(relativeX, relativeY, h);
                 break;
             case TRACK_B:
-                xRelative = 84 - x;
-                yRelative = 54 - y;
-                aim(xRelative, yRelative, h);
+                relativeX = 60 - shooterX;
+                relativeY = 84 - shooterY;
+                aim(relativeX, relativeY, h);
                 break;
             case LOCKED:
                 setAngle(0);
@@ -51,8 +53,8 @@ public class Turret {
         this.state = state;
     }
 
-    private void aim(double xRelative, double yRelative, double robotH) {
-        double hAbsolute = AngleUnit.normalizeDegrees(AngleUnit.DEGREES.fromRadians(Math.atan2(yRelative, xRelative)) - 90);
+    private void aim(double relativeX, double relativeY, double robotH) {
+        double hAbsolute = AngleUnit.normalizeDegrees(Math.toDegrees(Math.atan2(relativeY, relativeX)) - 90);
         double hRelative = AngleUnit.normalizeDegrees(hAbsolute - robotH);
         setAngle(hRelative);
     }
