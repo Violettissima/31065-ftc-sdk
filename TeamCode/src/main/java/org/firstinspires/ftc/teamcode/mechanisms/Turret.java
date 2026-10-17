@@ -4,26 +4,27 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class Turret {
 
     private final int TICKS_PER_REV = 760;
-    private double encoder_offset = 0;
+    private double encoderOffset = 0;
     private DcMotor motor;
-    public enum State {
+    public enum Tracking {
         TRACK_A,
         TRACK_B,
         LOCKED
     }
-    private State state = State.LOCKED;
+    private Tracking tracking = Tracking.LOCKED;
 
     public void update(double x, double y, double h) {
         double shooterX = x + 5 * Math.sin(Math.toRadians(h));
         double shooterY = y - 5 * Math.cos(Math.toRadians(h));
         double relativeX;
         double relativeY;
-        switch(state) {
+        switch(tracking) {
             case TRACK_A:
                 relativeX = 60 - shooterX;
                 relativeY = 60 - shooterY;
@@ -49,8 +50,8 @@ public class Turret {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
-    public void setState(State state) {
-        this.state = state;
+    public void setTracking(Tracking tracking) {
+        this.tracking = tracking;
     }
 
     private void aim(double relativeX, double relativeY, double robotH) {
@@ -61,6 +62,10 @@ public class Turret {
 
     public void setAngle(double degrees) {
         double safeDegrees = Range.clip(degrees, -135, 90);
-        motor.setTargetPosition((int) (safeDegrees / 360 * TICKS_PER_REV + encoder_offset));
+        motor.setTargetPosition((int) (safeDegrees / 360 * TICKS_PER_REV + encoderOffset));
+    }
+
+    public void addOffset(int offset) {
+        encoderOffset += offset;
     }
 }
