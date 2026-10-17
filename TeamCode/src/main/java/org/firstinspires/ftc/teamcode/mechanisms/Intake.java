@@ -36,7 +36,7 @@ public class Intake {
             rightRoller.setPower(1);
         } else {
             innerMotor.setPower(0);
-            outerMotor.setPower(-0.2);
+            outerMotor.setPower(-0.3);
             leftRoller.setPower(0);
             rightRoller.setPower(0);
         }
@@ -44,7 +44,7 @@ public class Intake {
 
     public void feed() {
         innerMotor.setPower(1);
-        outerMotor.setPower(-0.5);
+        outerMotor.setPower(-0.3);
         leftRoller.setPower(0);
         rightRoller.setPower(0);
     }
