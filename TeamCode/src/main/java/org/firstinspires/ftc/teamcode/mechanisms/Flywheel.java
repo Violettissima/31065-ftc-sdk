@@ -8,37 +8,61 @@ import com.qualcomm.robotcore.util.Range;
 
 public class Flywheel {
 
+    private final double GATE_CLOSE_POS = 0.25;
+    private final double GATE_OPEN_POS = 0.4;
+    private int speedOffset = 0;
     private DcMotorEx motor;
     private Servo gate;
     private Servo hood;
-    public enum State {
+    public enum Tracking {
         TRACK_A,
-        TRACK_B,
+        TRACK_B
+    }
+    private Tracking tracking = Tracking.TRACK_A;
+    public enum State {
+        SHOOTING,
+        CLOSED,
         IDLE
     }
-    private State state = State.IDLE;
+    private State state = State.CLOSED;
 
     public void update(double x, double y, double h) {
-        double shooterX = x + 5 * Math.sin(Math.toRadians(h));
-        double shooterY = y - 5 * Math.cos(Math.toRadians(h));
-        double relativeX;
-        double relativeY;
-        double distance;
+
         switch(state) {
-            case TRACK_A:
-                relativeX = 60 - shooterX;
-                relativeY = 48 - shooterY;
-                distance = Math.sqrt(Math.pow(relativeX, 2) + Math.pow(relativeY, 2));
-                run(distance);
+            case SHOOTING:
+                if(gate.getPosition() != GATE_OPEN_POS) {
+                    gate.setPosition(GATE_OPEN_POS);
+                }
                 break;
-            case TRACK_B:
-                relativeX = 60 - x;
-                relativeY = 96 - y;
-                distance = Math.sqrt(Math.pow(relativeX, 2) + Math.pow(relativeY, 2));
-                run(distance);
+            case CLOSED:
+                if(gate.getPosition() != GATE_CLOSE_POS) {
+                    gate.setPosition(GATE_CLOSE_POS);
+                }
                 break;
-            case IDLE:
-                motor.setVelocity(0);
+        }
+
+        if(state != State.IDLE) {
+            double shooterX = x + 5 * Math.sin(Math.toRadians(h));
+            double shooterY = y - 5 * Math.cos(Math.toRadians(h));
+            double relativeX;
+            double relativeY;
+            double distance;
+            switch(tracking) {
+                case TRACK_A:
+                    relativeX = 60 - shooterX;
+                    relativeY = 48 - shooterY;
+                    distance = Math.sqrt(Math.pow(relativeX, 2) + Math.pow(relativeY, 2));
+                    run(distance);
+                    break;
+                case TRACK_B:
+                    relativeX = 60 - x;
+                    relativeY = 96 - y;
+                    distance = Math.sqrt(Math.pow(relativeX, 2) + Math.pow(relativeY, 2));
+                    run(distance);
+                    break;
+            }
+        } else {
+            motor.setVelocity(0);
         }
     }
 
@@ -50,31 +74,35 @@ public class Flywheel {
         gate = hardwareMap.get(Servo.class, "gate");
         hood = hardwareMap.get(Servo.class, "hood");
         setHoodPos(0);
-        openGate();
+        gate.setPosition(GATE_CLOSE_POS);
     }
 
 
     public void run(double distance) {
-        double ticks = (int) (0.000263695 * Math.pow(distance, 4) - 0.0515588 * Math.pow(distance, 3) + 3.3993 * Math.pow(distance, 2) - 82.49407 * distance + 2045.59012);
+        double ticks = (int) (0.000263695 * Math.pow(distance, 4) - 0.0515588 * Math.pow(distance, 3) + 3.3993 * Math.pow(distance, 2) - 82.49407 * distance + 2045.59012 + speedOffset);
         motor.setVelocity(ticks);
         double hoodAngle = 0.295177 * distance - 7.56207;
         setHoodPos(hoodAngle);
+    }
+
+    public void addOffset(int offset) {
+        speedOffset += offset;
+    }
+
+    public void setTracking(Tracking tracking) {
+        this.tracking = tracking;
     }
 
     public void setState(State state) {
         this.state = state;
     }
 
+    public State getState() {
+        return state;
+    }
+
     private void setHoodPos(double degrees) {
         degrees = Range.clip(degrees, 0, 15);
         hood.setPosition(degrees * 0.027 + 0.054);
-    }
-
-    private void closeGate() {
-        gate.setPosition(0.25);
-    }
-
-    private void openGate() {
-        gate.setPosition(0.4);
     }
 }
