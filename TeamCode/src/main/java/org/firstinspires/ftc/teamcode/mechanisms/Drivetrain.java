@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.mechanisms;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -10,9 +11,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Drivetrain {
 
-    private final double STARTING_X = 0;
-    private final double STARTING_Y = 0;
+    private final double STARTING_X = 60;
+    private final double STARTING_Y = 9;
     private final double STARTING_H = 0;
+    private double speed = 1;
     private DcMotor frDrive;
     private DcMotor flDrive;
     private DcMotor brDrive;
@@ -43,13 +45,13 @@ public class Drivetrain {
     }
 
     public void drive(double forward, double right, double rotate){
-        double robotAngle = Math.toRadians(otos.getPosition().h);
-        // convert to polar
+        forward *= speed;
+        right *= speed;
+        rotate *= speed;
+        double robotAngle = Math.toRadians(getH());
         double theta = Math.atan2(forward, right);
         double r = Math.hypot(forward, right);
-        // rotate angle
         theta = AngleUnit.normalizeRadians(theta - robotAngle);
-        // convert back to cartesian
         double newForward = r * Math.sin(theta);
         double newRight = r * Math.cos(theta);
         driveRobotCentric(newForward, newRight, rotate);
@@ -92,6 +94,10 @@ public class Drivetrain {
         SparkFunOTOS.Version hwVersion = new SparkFunOTOS.Version();
         SparkFunOTOS.Version fwVersion = new SparkFunOTOS.Version();
         otos.getVersionInfo(hwVersion, fwVersion);
+    }
+
+    public void setSpeed(double speed) {
+        this.speed = Range.clip(speed, 0, 1);
     }
 
     public double getX() {
