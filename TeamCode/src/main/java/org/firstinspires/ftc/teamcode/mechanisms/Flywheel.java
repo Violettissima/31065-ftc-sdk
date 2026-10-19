@@ -11,6 +11,12 @@ public class Flywheel {
     private final double GATE_CLOSE_POS = 0.25;
     private final double GATE_OPEN_POS = 0.4;
     private int speedOffset = 0;
+    // The speed we most recently asked the flywheel to spin at (encoder ticks per second).
+    // Saved every time run() picks a new speed, so isAtSpeed() knows what "up to speed" means.
+    private double targetVelocity = 0;
+    // How close is "close enough" when checking the flywheel speed.
+    // 150 ticks/sec of wiggle room avoids false alarms from the normal wobble of a spinning wheel.
+    private static final double SPEED_TOLERANCE = 150;
     private DcMotorEx motor;
     private Servo gate;
     private Servo hood;
@@ -62,6 +68,7 @@ public class Flywheel {
                     break;
             }
         } else {
+            targetVelocity = 0;
             motor.setVelocity(0);
         }
     }
@@ -80,9 +87,19 @@ public class Flywheel {
 
     public void run(double distance) {
         double ticks = (int) (0.000263695 * Math.pow(distance, 4) - 0.0515588 * Math.pow(distance, 3) + 3.3993 * Math.pow(distance, 2) - 82.49407 * distance + 2045.59012 + speedOffset);
+        targetVelocity = ticks;
         motor.setVelocity(ticks);
         double hoodAngle = 0.295177 * distance - 7.56207;
         setHoodPos(hoodAngle);
+    }
+
+    /**
+     * True when the flywheel is actually spinning at the speed we asked for.
+     * The auto waits for this before feeding each ball, so every shot leaves
+     * at full power instead of while the wheel is still catching up.
+     */
+    public boolean isAtSpeed() {
+        return Math.abs(motor.getVelocity() - targetVelocity) < SPEED_TOLERANCE;
     }
 
     public void addOffset(int offset) {
