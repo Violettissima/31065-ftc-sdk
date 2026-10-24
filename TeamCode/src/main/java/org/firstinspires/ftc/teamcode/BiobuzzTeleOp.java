@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -8,9 +9,10 @@ import org.firstinspires.ftc.teamcode.mechanisms.Flywheel;
 import org.firstinspires.ftc.teamcode.mechanisms.Intake;
 import org.firstinspires.ftc.teamcode.mechanisms.Turret;
 
-@TeleOp
+@Disabled
 public class BiobuzzTeleOp extends OpMode {
 
+    private boolean shooterLocked = false;
     private final Drivetrain drivetrain = new Drivetrain();
     private final Flywheel flywheel = new Flywheel();
     private final Intake intake = new Intake();
@@ -19,9 +21,9 @@ public class BiobuzzTeleOp extends OpMode {
     @Override
     public void init() {
         drivetrain.init(hardwareMap);
-        flywheel.init(hardwareMap);
-        intake.init(hardwareMap);
-        turret.init(hardwareMap);
+        flywheel.init(hardwareMap, telemetry);
+        intake.init(hardwareMap, telemetry);
+        turret.init(hardwareMap, telemetry);
     }
 
     @Override
@@ -31,12 +33,14 @@ public class BiobuzzTeleOp extends OpMode {
         double y = drivetrain.getY();
         double h = drivetrain.getH();
 
-        if(y < 48) {
-            flywheel.setTracking(Flywheel.Tracking.TRACK_A);
-            turret.setTracking(Turret.Tracking.TRACK_A);
-        } else if(y > 96) {
-            flywheel.setTracking(Flywheel.Tracking.TRACK_B);
-            turret.setTracking(Turret.Tracking.TRACK_B);
+        if(!shooterLocked) {
+            if (y < 48) {
+                flywheel.setTracking(Flywheel.Tracking.TRACK_A);
+                turret.setTracking(Turret.Tracking.TRACK_A);
+            } else if (y > 96) {
+                flywheel.setTracking(Flywheel.Tracking.TRACK_B);
+                turret.setTracking(Turret.Tracking.TRACK_B);
+            }
         }
 
         if(gamepad2.back) {
@@ -73,7 +77,23 @@ public class BiobuzzTeleOp extends OpMode {
             drivetrain.setSpeed(1);
         }
 
+        if(gamepad2.leftTriggerWasPressed()) {
+            shooterLocked = !shooterLocked;
+            if(shooterLocked) {
+                flywheel.setTracking(Flywheel.Tracking.LOCKED);
+                turret.setTracking(Turret.Tracking.LOCKED);
+                turret.resetOffset();
+            }
+        }
+
+        if(gamepad1.a) {
+            drivetrain.resetTracking();
+        }
+
         drivetrain.drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+
+        drivetrain.update();
+        intake.update();
         flywheel.update(x, y, h);
         turret.update(x, y, h);
 
