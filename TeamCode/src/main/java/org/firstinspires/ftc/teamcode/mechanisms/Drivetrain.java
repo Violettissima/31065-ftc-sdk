@@ -1,25 +1,26 @@
 package org.firstinspires.ftc.teamcode.mechanisms;
 
-import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 public class Drivetrain {
 
-    private final double STARTING_X = 60;
-    private final double STARTING_Y = 9;
-    private final double STARTING_H = 0;
     private double speed = 1;
     private DcMotor frDrive;
     private DcMotor flDrive;
     private DcMotor brDrive;
     private DcMotor blDrive;
-    private SparkFunOTOS otos;
+    private GoBildaPinpointDriver pinpoint;
+
+    public void update() {
+        pinpoint.update();
+    }
 
     public void init(HardwareMap hardwareMap) {
         frDrive = hardwareMap.get(DcMotor.class, "fr");
@@ -40,8 +41,12 @@ public class Drivetrain {
         flDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         brDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         blDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        otos = hardwareMap.get(SparkFunOTOS.class, "otos");
-        configureOtos();
+        pinpoint = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+        configurePinpoint();
+    }
+
+    public void start() {
+        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 60, 9, AngleUnit.DEGREES, 90));
     }
 
     public void drive(double forward, double right, double rotate){
@@ -80,20 +85,15 @@ public class Drivetrain {
         blDrive.setPower(backLeftPower);
     }
 
-    private void configureOtos() {
-        otos.setLinearUnit(DistanceUnit.INCH);
-        otos.setAngularUnit(AngleUnit.DEGREES);
-        SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, 0);
-        otos.setOffset(offset);
-        otos.setLinearScalar(1.0);
-        otos.setAngularScalar(1.0);
-        otos.calibrateImu();
-        otos.resetTracking();
-        SparkFunOTOS.Pose2D currentPosition = new SparkFunOTOS.Pose2D(0, 0, 0);
-        otos.setPosition(currentPosition);
-        SparkFunOTOS.Version hwVersion = new SparkFunOTOS.Version();
-        SparkFunOTOS.Version fwVersion = new SparkFunOTOS.Version();
-        otos.getVersionInfo(hwVersion, fwVersion);
+    public void configurePinpoint(){
+        pinpoint.setOffsets(0, 0, DistanceUnit.MM);
+        pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
+        pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        pinpoint.resetPosAndIMU();
+    }
+
+    public void resetTracking() {
+        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 9, 9, AngleUnit.DEGREES, 90));
     }
 
     public void setSpeed(double speed) {
@@ -101,15 +101,15 @@ public class Drivetrain {
     }
 
     public double getX() {
-        return otos.getPosition().x + STARTING_X;
+        return pinpoint.getPosition().getX(DistanceUnit.INCH);
     }
 
     public double getY() {
-        return otos.getPosition().y + STARTING_Y;
+        return pinpoint.getPosition().getY(DistanceUnit.INCH);
     }
 
     public double getH() {
-        return otos.getPosition().h + STARTING_H;
+        return pinpoint.getPosition().getHeading(AngleUnit.DEGREES);
     }
 
 }
