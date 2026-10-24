@@ -18,6 +18,7 @@ public class Turret {
         LOCKED
     }
     private Tracking tracking = Tracking.LOCKED;
+    private Telemetry telemetry;
 
     public void update(double x, double y, double h) {
         double shooterX = x + 5 * Math.sin(Math.toRadians(h));
@@ -41,13 +42,14 @@ public class Turret {
         }
     }
 
-    public void init(HardwareMap hardwareMap) {
+    public void init(HardwareMap hardwareMap, Telemetry telemetry) {
         motor = hardwareMap.get(DcMotor.class, "turret");
         motor.setTargetPosition(0);
         motor.setPower(0.3);
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        this.telemetry = telemetry;
     }
 
     public void setTracking(Tracking tracking) {
@@ -60,7 +62,11 @@ public class Turret {
         setAngle(hRelative);
     }
 
-    public void setAngle(double degrees) {
+    public void resetOffset() {
+        encoderOffset = 0;
+    }
+
+    private void setAngle(double degrees) {
         double safeDegrees = Range.clip(degrees, -135, 90);
         motor.setTargetPosition((int) (safeDegrees / 360 * TICKS_PER_REV + encoderOffset));
     }
