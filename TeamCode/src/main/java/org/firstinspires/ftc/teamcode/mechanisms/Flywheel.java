@@ -33,7 +33,7 @@ public class Flywheel {
         CLOSED,
         IDLE
     }
-    private State state = State.CLOSED;
+    private State state = State.IDLE;
     private Telemetry telemetry;
 
     public void update(double x, double y, double h) {
