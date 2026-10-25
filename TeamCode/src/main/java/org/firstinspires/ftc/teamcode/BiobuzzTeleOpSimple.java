@@ -61,7 +61,11 @@ public class BiobuzzTeleOpSimple extends OpMode {
             intake.feed();
         } else {
             if(gamepad2.right_trigger > 0) {
-                intake.setPower(gamepad2.right_trigger);
+                if(gamepad1.b) {
+                    intake.flower(gamepad2.right_trigger);
+                } else {
+                    intake.setPower(gamepad2.right_trigger);
+                }
             } else if(gamepad2.left_trigger > 0) {
                 intake.spit();
             } else {

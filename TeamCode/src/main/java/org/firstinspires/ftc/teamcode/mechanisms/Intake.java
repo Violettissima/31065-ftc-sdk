@@ -21,6 +21,7 @@ public class Intake {
     private CRServo leftRoller;
     private enum State {
         RUN,
+        FLOWER,
         FEED,
         SPIT,
         IDLE
@@ -34,25 +35,31 @@ public class Intake {
                 innerMotor.setPower(speed);
                 outerMotor.setPower(speed);
                 leftRoller.setPower(1);
+                rightSwiper.setPosition(0);
+                break;
+            case FLOWER:
+                innerMotor.setPower(speed);
+                outerMotor.setPower(speed);
+                leftRoller.setPower(1);
                 rightSwiper.setPosition(swiperPos);
                 break;
             case FEED:
                 innerMotor.setPower(1);
                 outerMotor.setPower(-0.3);
                 leftRoller.setPower(0);
-                rightSwiper.setPosition(0.5);
+                rightSwiper.setPosition(0);
                 break;
             case SPIT:
                 innerMotor.setPower(0);
                 outerMotor.setPower(-1);
                 leftRoller.setPower(0);
-                rightSwiper.setPosition(0.5);
+                rightSwiper.setPosition(0);
                 break;
             case IDLE:
                 innerMotor.setPower(0);
                 outerMotor.setPower(-0.3);
                 leftRoller.setPower(0);
-                rightSwiper.setPosition(0.5);
+                rightSwiper.setPosition(0);
                 break;
         }
 
@@ -64,7 +71,6 @@ public class Intake {
                 swiperPos = 0;
             }
         }
-        telemetry.addData("swiper timer", swiperTimer.seconds());
     }
 
     public void init(HardwareMap hardwareMap, Telemetry telemetry) {
@@ -88,13 +94,17 @@ public class Intake {
         if (speed == 0) {
             state = State.IDLE;
         } else {
-            if(state != State.RUN) {
-                swiperTimer.reset();
-                swiperPos = 0;
-                state = State.RUN;
-            }
+            state = State.RUN;
 
         }
+    }
+
+    public void flower(double speed) {
+        state = State.FLOWER;
+        speed = Range.clip(speed, 0, 1);
+        this.speed = speed;
+        swiperTimer.reset();
+        swiperPos = 0;
     }
 
     public void feed() {
