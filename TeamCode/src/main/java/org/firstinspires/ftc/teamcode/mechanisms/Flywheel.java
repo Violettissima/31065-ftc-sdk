@@ -6,13 +6,14 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class Flywheel {
 
     private final double P = 10;
-    private final double F = 0.7;
+    private final double F = 0.85;
     private final double C = 0.1;
     private final double GATE_CLOSE_POS = 0.25;
     private final double GATE_OPEN_POS = 0.4;
@@ -21,6 +22,7 @@ public class Flywheel {
     private DcMotorEx motor;
     private Servo gate;
     private Servo hood;
+    private VoltageSensor batterySensor;
     public enum Tracking {
         TRACK_A,
         TRACK_B,
@@ -92,6 +94,8 @@ public class Flywheel {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         gate = hardwareMap.get(Servo.class, "gate");
         hood = hardwareMap.get(Servo.class, "hood");
+        batterySensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
+
         setHoodPos(0);
         gate.setPosition(GATE_CLOSE_POS);
         this.telemetry = telemetry;
@@ -103,11 +107,19 @@ public class Flywheel {
         double hoodAngle = 0.295177 * distance - 7.56207;
         setHoodPos(hoodAngle);
     }
-
+    public void voltageCompensation(){
+    }
     public void runFlywheel(int target) {
         int currentSpeed = (int) motor.getVelocity();
         int error = target - currentSpeed;
-        motor.setPower((P *  error + F * target) / 1000 + C);
+
+        double currentVoltage = batterySensor.getVoltage();
+        double voltageOffset = Range.clip(((12 / currentVoltage) * 1.1), 1, 1.5);
+
+        double power = (((P *  error + F * target) / 1000 + C)*voltageOffset);
+        motor.setPower(power);
+
+        telemetry.addData("voltageOffset", voltageOffset);
     }
 
     public void resetOffset() {
