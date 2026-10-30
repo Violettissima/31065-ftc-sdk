@@ -66,9 +66,9 @@ public class BiobuzzTeleOp extends OpMode {
         }
 
         if(flywheel.getState() == Flywheel.State.SHOOTING) {
-            intake.feed();
+            intake.set(Intake.State.FEED);
         } else {
-            intake.setPower(gamepad2.right_trigger);
+            intake.set(Intake.State.RUN, gamepad2.right_trigger);
         }
 
         if(gamepad1.leftTriggerWasPressed()) {
