@@ -24,57 +24,61 @@ public class BiobuzzAuto extends OpMode {
         DRIVE_SHOOT_GARDEN,
         DRIVE_INTAKE_GARDEN,
         DRIVE_GARDEN_PARK,
-        PARKED
+        PARKED,
+        BACKUP
     }
     private State state = State.SPIN_UP;
     private ElapsedTime stateTimer = new ElapsedTime();
+    private ElapsedTime autoTimer = new ElapsedTime();
 
     @Override
     public void init() {
         follower = Constants.create(hardwareMap);
-        follower.setPose(Paths.garden2);
+        follower.setPose(Paths.shootB);
         flywheel.init(hardwareMap, telemetry);
         intake.init(hardwareMap, telemetry);
         turret.init(hardwareMap, telemetry);
         flywheel.setState(Flywheel.State.CLOSED);
         flywheel.setTracking(Flywheel.Tracking.LOCKED);
-        intake.setPower(0);
+        intake.set(Intake.State.IDLE);
         turret.setTracking(Turret.Tracking.LOCKED);
     }
 
     @Override
     public void start() {
         stateTimer.reset();
+        autoTimer.reset();
     }
 
     @Override
     public void loop() {
+        telemetry.addData("state", state);
         switch(state) {
             case SPIN_UP:
-                if(stateTimer.seconds() > 7) {
+                if(stateTimer.seconds() > 3) {
                     state = State.SHOOT;
                     flywheel.setState(Flywheel.State.AUTO_SHOOTING);
-                    intake.feed();
+                    intake.set(Intake.State.FEED);
                 }
                 break;
             case SHOOT:
                 if(flywheel.getState() == Flywheel.State.IDLE) {
                     state = State.DRIVE_SHOOT_GARDEN;
-                    intake.setPower(0);
+                    intake.set(Intake.State.IDLE);
                     follower.follow(Paths.bg1());
                 }
                 break;
             case DRIVE_SHOOT_GARDEN:
                 if(!follower.isBusy()) {
                     state = State.DRIVE_INTAKE_GARDEN;
-                    intake.setPower(1);
+                    intake.set(Intake.State.RUN);
                     follower.follow(Paths.g1g2());
                 }
                 break;
             case DRIVE_INTAKE_GARDEN:
                 if(!follower.isBusy()) {
                     state = State.DRIVE_GARDEN_PARK;
-                    intake.setPower(0);
+                    intake.set(Intake.State.IDLE);
                     follower.follow(Paths.g2p());
                 }
                 break;
@@ -83,7 +87,14 @@ public class BiobuzzAuto extends OpMode {
                     state = State.PARKED;
                 }
                 break;
+            case BACKUP:
+                follower.follow(Paths.backup());
+                intake.set(Intake.State.IDLE);
+                flywheel.setState(Flywheel.State.IDLE);
+        }
 
+        if(autoTimer.seconds() >= 20) {
+            state = State.BACKUP;
         }
 
         follower.update();
