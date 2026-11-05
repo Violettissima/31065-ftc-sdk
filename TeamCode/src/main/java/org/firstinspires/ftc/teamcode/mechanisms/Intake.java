@@ -5,23 +5,20 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class Intake {
 
-    private double swiperPos = 0;
     private double speed = 0;
-    private ElapsedTime swiperTimer = new ElapsedTime();
+    private boolean flowerIntaking = false;
     private DcMotor outerMotor;
     private DcMotor innerMotor;
     private Servo rightSwiper;
     private CRServo leftRoller;
-    private enum State {
+    public enum State {
         RUN,
-        FLOWER,
         FEED,
         SPIT,
         IDLE
@@ -35,41 +32,28 @@ public class Intake {
                 innerMotor.setPower(speed);
                 outerMotor.setPower(speed);
                 leftRoller.setPower(1);
-                rightSwiper.setPosition(0);
-                break;
-            case FLOWER:
-                innerMotor.setPower(speed);
-                outerMotor.setPower(speed);
-                leftRoller.setPower(1);
-                rightSwiper.setPosition(swiperPos);
                 break;
             case FEED:
                 innerMotor.setPower(1);
                 outerMotor.setPower(-0.3);
                 leftRoller.setPower(0);
-                rightSwiper.setPosition(0);
                 break;
             case SPIT:
                 innerMotor.setPower(0);
                 outerMotor.setPower(-1);
                 leftRoller.setPower(0);
-                rightSwiper.setPosition(0);
                 break;
             case IDLE:
                 innerMotor.setPower(0);
                 outerMotor.setPower(-0.3);
                 leftRoller.setPower(0);
-                rightSwiper.setPosition(0);
                 break;
         }
 
-        if(swiperTimer.seconds() > 0.5) {
-            swiperTimer.reset();
-            if(swiperPos == 0) {
-                swiperPos = 0.6;
-            } else {
-                swiperPos = 0;
-            }
+        if(flowerIntaking) {
+            rightSwiper.setPosition(0.75);
+        } else {
+            rightSwiper.setPosition(0.05);
         }
     }
 
@@ -88,30 +72,18 @@ public class Intake {
         this.telemetry = telemetry;
     }
 
-    public void setPower(double speed) {
+    public void set(State state, double speed) {
         speed = Range.clip(speed, 0, 1);
         this.speed = speed;
-        if (speed == 0) {
-            state = State.IDLE;
-        } else {
-            state = State.RUN;
-
-        }
+        this.state = state;
     }
 
-    public void flower(double speed) {
-        state = State.FLOWER;
-        speed = Range.clip(speed, 0, 1);
-        this.speed = speed;
-        swiperTimer.reset();
-        swiperPos = 0;
+    public void set(State state) {
+        this.speed = 1;
+        this.state = state;
     }
 
-    public void feed() {
-        state = State.FEED;
-    }
-
-    public void spit() {
-        state = State.SPIT;
+    public void setFlowerIntaking(boolean flowerIntaking) {
+        this.flowerIntaking = flowerIntaking;
     }
 }

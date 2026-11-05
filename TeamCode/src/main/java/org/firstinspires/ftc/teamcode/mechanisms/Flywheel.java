@@ -6,14 +6,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class Flywheel {
 
-    private final double P = 10;
-    private final double F = 0.85;
+    private final double P = 1.5;
+    private final double F = 0.5;
     private final double C = 0.1;
     private final double GATE_CLOSE_POS = 0.25;
     private final double GATE_OPEN_POS = 0.4;
@@ -22,7 +21,6 @@ public class Flywheel {
     private DcMotorEx motor;
     private Servo gate;
     private Servo hood;
-    private VoltageSensor batterySensor;
     public enum Tracking {
         TRACK_A,
         TRACK_B,
@@ -44,7 +42,7 @@ public class Flywheel {
         switch(state) {
             case AUTO_SHOOTING:
                 if(stateTimer.seconds() >= 4) {
-                    state = State.IDLE;
+                    setState(State.IDLE);
                 }
             case SHOOTING:
                 if(gate.getPosition() != GATE_OPEN_POS) {
@@ -52,6 +50,7 @@ public class Flywheel {
                 }
                 break;
             case CLOSED:
+            case IDLE:
                 if(gate.getPosition() != GATE_CLOSE_POS) {
                     gate.setPosition(GATE_CLOSE_POS);
                 }
@@ -59,26 +58,28 @@ public class Flywheel {
         }
 
         if(state != State.IDLE) {
-            double shooterX = x + 5 * Math.sin(Math.toRadians(h));
-            double shooterY = y - 5 * Math.cos(Math.toRadians(h));
+            double shooterX = x - 5 * Math.cos(Math.toRadians(h));
+            double shooterY = y - 5 * Math.sin(Math.toRadians(h));
+            telemetry.addData("shooter x", shooterX);
+            telemetry.addData("shooter y", shooterY);
             double relativeX;
             double relativeY;
             double distance;
             switch(tracking) {
                 case TRACK_A:
                     relativeX = 60 - shooterX;
-                    relativeY = 48 - shooterY;
+                    relativeY = 54 - shooterY;
                     distance = Math.sqrt(Math.pow(relativeX, 2) + Math.pow(relativeY, 2));
                     track(distance);
                     break;
                 case TRACK_B:
-                    relativeX = 60 - x;
-                    relativeY = 96 - y;
+                    relativeX = 60 - shooterX;
+                    relativeY = 90 - shooterY;
                     distance = Math.sqrt(Math.pow(relativeX, 2) + Math.pow(relativeY, 2));
                     track(distance);
                     break;
                 case LOCKED:
-                    runFlywheel(900 + speedOffset);
+                    runFlywheel(700 + speedOffset);
                     setHoodPos(0);
             }
         } else {
@@ -94,8 +95,6 @@ public class Flywheel {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         gate = hardwareMap.get(Servo.class, "gate");
         hood = hardwareMap.get(Servo.class, "hood");
-        batterySensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
-
         setHoodPos(0);
         gate.setPosition(GATE_CLOSE_POS);
         this.telemetry = telemetry;
@@ -107,19 +106,11 @@ public class Flywheel {
         double hoodAngle = 0.295177 * distance - 7.56207;
         setHoodPos(hoodAngle);
     }
-    public void voltageCompensation(){
-    }
+
     public void runFlywheel(int target) {
         int currentSpeed = (int) motor.getVelocity();
         int error = target - currentSpeed;
-
-        double currentVoltage = batterySensor.getVoltage();
-        double voltageOffset = Range.clip(((12 / currentVoltage) * 1.1), 1, 1.5);
-
-        double power = (((P *  error + F * target) / 1000 + C)*voltageOffset);
-        motor.setPower(power);
-
-        telemetry.addData("voltageOffset", voltageOffset);
+        motor.setPower((P *  error + F * target) / 1000 + C);
     }
 
     public void resetOffset() {

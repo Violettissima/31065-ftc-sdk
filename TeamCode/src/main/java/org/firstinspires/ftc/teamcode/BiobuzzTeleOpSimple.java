@@ -58,20 +58,21 @@ public class BiobuzzTeleOpSimple extends OpMode {
         }
 
         if(flywheel.getState() == Flywheel.State.SHOOTING) {
-            intake.feed();
+            intake.set(Intake.State.FEED);
         } else {
             if(gamepad2.right_trigger > 0) {
-                if(gamepad1.b) {
-                    intake.flower(gamepad2.right_trigger);
-                } else {
-                    intake.setPower(gamepad2.right_trigger);
-                }
+                intake.set(Intake.State.RUN, gamepad2.right_trigger);
             } else if(gamepad2.left_trigger > 0) {
-                intake.spit();
+                intake.set(Intake.State.SPIT);
             } else {
-                intake.setPower(0);
+                intake.set(Intake.State.IDLE);
             }
+        }
 
+        if(gamepad2.bWasPressed()) {
+            intake.setFlowerIntaking(true);
+        } else if (gamepad2.bWasReleased()) {
+            intake.setFlowerIntaking(false);
         }
 
         if(gamepad1.leftTriggerWasPressed()) {

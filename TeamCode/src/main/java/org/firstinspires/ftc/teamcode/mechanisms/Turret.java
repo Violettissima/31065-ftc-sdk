@@ -21,19 +21,19 @@ public class Turret {
     private Telemetry telemetry;
 
     public void update(double x, double y, double h) {
-        double shooterX = x + 5 * Math.sin(Math.toRadians(h));
-        double shooterY = y - 5 * Math.cos(Math.toRadians(h));
+        double shooterX = x - 5 * Math.cos(Math.toRadians(h));
+        double shooterY = y - 5 * Math.sin(Math.toRadians(h));
         double relativeX;
         double relativeY;
         switch(tracking) {
             case TRACK_A:
                 relativeX = 60 - shooterX;
-                relativeY = 60 - shooterY;
+                relativeY = 54 - shooterY;
                 aim(relativeX, relativeY, h);
                 break;
             case TRACK_B:
                 relativeX = 60 - shooterX;
-                relativeY = 84 - shooterY;
+                relativeY = 90 - shooterY;
                 aim(relativeX, relativeY, h);
                 break;
             case LOCKED:
