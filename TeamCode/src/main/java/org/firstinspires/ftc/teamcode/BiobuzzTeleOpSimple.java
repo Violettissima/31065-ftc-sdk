@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.mechanisms.Drivetrain;
 import org.firstinspires.ftc.teamcode.mechanisms.Flywheel;
@@ -14,6 +15,8 @@ public class BiobuzzTeleOpSimple extends OpMode {
     private final Flywheel flywheel = new Flywheel();
     private final Intake intake = new Intake();
     private final Turret turret = new Turret();
+    private final ElapsedTime gateDelay = new ElapsedTime();
+    private boolean trackGateDelay = false;
 
     @Override
     public void init() {
@@ -47,9 +50,16 @@ public class BiobuzzTeleOpSimple extends OpMode {
             }
         } else {
             if(gamepad2.a) {
-                flywheel.setState(Flywheel.State.SHOOTING);
+                if(trackGateDelay == false){
+                    gateDelay.reset();
+                    trackGateDelay = true;
+                }
+                if(gateDelay.seconds() > 0.5){
+                    flywheel.setState(Flywheel.State.SHOOTING);
+                }
             } else if(gamepad2.aWasReleased()) {
                 flywheel.setState(Flywheel.State.CLOSED);
+                trackGateDelay = false;
             } else if(gamepad2.dpadUpWasPressed()) {
                 flywheel.setState(Flywheel.State.CLOSED);
             } else if(gamepad2.dpadDownWasPressed()) {
@@ -57,7 +67,8 @@ public class BiobuzzTeleOpSimple extends OpMode {
             }
         }
 
-        if(flywheel.getState() == Flywheel.State.SHOOTING) {
+
+            if(flywheel.getState() == Flywheel.State.SHOOTING) {
             intake.set(Intake.State.FEED);
         } else {
             if(gamepad2.right_trigger > 0) {

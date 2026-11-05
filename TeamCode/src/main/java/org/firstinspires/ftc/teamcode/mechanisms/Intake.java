@@ -15,8 +15,8 @@ public class Intake {
     private boolean flowerIntaking = false;
     private DcMotor outerMotor;
     private DcMotor innerMotor;
-    private Servo rightSwiper;
     private CRServo leftRoller;
+    private Servo flower;
     public enum State {
         RUN,
         FEED,
@@ -51,9 +51,9 @@ public class Intake {
         }
 
         if(flowerIntaking) {
-            rightSwiper.setPosition(0.75);
+            flower.setPosition(1);
         } else {
-            rightSwiper.setPosition(0.05);
+            flower.setPosition(0);
         }
     }
 
@@ -66,8 +66,8 @@ public class Intake {
         innerMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         outerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         innerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightSwiper = hardwareMap.get(Servo.class, "right_roller");
         leftRoller = hardwareMap.get(CRServo.class, "left_roller");
+        flower = hardwareMap.get(Servo.class, "flower");
         leftRoller.setDirection(DcMotor.Direction.REVERSE);
         this.telemetry = telemetry;
     }

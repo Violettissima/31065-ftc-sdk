@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.mechanisms.Drivetrain;
 import org.firstinspires.ftc.teamcode.mechanisms.Flywheel;
@@ -17,6 +18,8 @@ public class BiobuzzTeleOp extends OpMode {
     private final Flywheel flywheel = new Flywheel();
     private final Intake intake = new Intake();
     private final Turret turret = new Turret();
+    private final ElapsedTime gateDelay = new ElapsedTime();
+    private boolean trackGateDelay = false;
 
     @Override
     public void init() {
