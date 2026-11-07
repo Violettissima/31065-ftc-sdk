@@ -8,25 +8,29 @@ public class Paths {
 
     private static final PoseFactory poseFactory = PoseFactory.degrees();
 
-    public static final Pose shootB = poseFactory.of(60, 10, 90);
-    public static final Pose shootBGarden1Control = poseFactory.of(45, 24, 0);
-    public static final Pose garden1 = poseFactory.of(30, 9, 180);
-    public static final Pose garden2 = poseFactory.of(12, 9, 180);
-    public static final Pose park = poseFactory.of(10, 96, 90);
-    public static final Pose gardenParkControl1 = poseFactory.of(50, 50, 0);
-    public static final Pose gardenParkControl2 = poseFactory.of(10, 70, 0);
-    public static final Pose backup = poseFactory.of(20, 20, 0);
+    public static final Pose shootB = poseFactory.of(58, 9, 90);
+    private static final Pose shootBGarden1Control = poseFactory.of(45, 24, 0);
+    private static final Pose garden1 = poseFactory.of(30, 9, 180);
+    private static final Pose garden2 = poseFactory.of(9, 9, 180);
+    private static final Pose garden2ShootBControl = poseFactory.of(45, 24, 0);
+    private static final Pose park = poseFactory.of(10, 96, 90);
+    private static final Pose shootBParkControl = poseFactory.of(25, 25, 0);
+    private static final Pose backup = poseFactory.of(20, 20, 0);
 
     public static Path bg1() {
         return com.pedropathing.api.Paths.curve(shootB, shootBGarden1Control, garden1).linear(shootB, garden1);
     }
 
     public static Path g1g2() {
-        return com.pedropathing.api.Paths.line(garden1, garden2).tangent();
+        return com.pedropathing.api.Paths.line(garden1, garden2).tangent().with(Constants.foresightConfig.maxPathSpeed.at(0.5));
     }
 
-    public static Path g2p() {
-        return com.pedropathing.api.Paths.curve(garden2, gardenParkControl1, gardenParkControl2, park).linear(garden2, park);
+    public static Path g2b() {
+        return com.pedropathing.api.Paths.curve(garden2, garden2ShootBControl, shootB).linear(garden2, shootB);
+    }
+
+    public static Path bp() {
+        return com.pedropathing.api.Paths.curve(shootB, shootBParkControl, park).constant(park);
     }
 
     public static Path backup() {
