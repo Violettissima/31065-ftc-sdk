@@ -13,10 +13,12 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 public class Flywheel {
 
     private final double P = 1.5;
-    private final double F = 0.5;
-    private final double C = 0.1;
+    private final double F = 0.38;
+    private final double C = 0.09;
+    private final double SPEED_TOLERANCE = 20;
     private final double GATE_CLOSE_POS = 0.25;
     private final double GATE_OPEN_POS = 0.4;
+    private int flywheelTarget = 0;
     private int speedOffset = 0;
     private final ElapsedTime stateTimer = new ElapsedTime();
     private DcMotorEx motor;
@@ -43,7 +45,7 @@ public class Flywheel {
 
         switch(state) {
             case AUTO_SHOOTING:
-                if(stateTimer.seconds() >= 4) {
+                if(stateTimer.seconds() >= 2) {
                     setState(State.IDLE);
                 }
             case SHOOTING:
@@ -69,20 +71,20 @@ public class Flywheel {
             double distance;
             switch(tracking) {
                 case TRACK_A:
-                    relativeX = 60 - shooterX;
+                    relativeX = 58 - shooterX;
                     relativeY = 54 - shooterY;
                     distance = Math.sqrt(Math.pow(relativeX, 2) + Math.pow(relativeY, 2));
                     track(distance);
                     break;
                 case TRACK_B:
-                    relativeX = 60 - shooterX;
-                    relativeY = 90 - shooterY;
+                    relativeX = 58 - shooterX;
+                    relativeY = 86 - shooterY;
                     distance = Math.sqrt(Math.pow(relativeX, 2) + Math.pow(relativeY, 2));
                     track(distance);
                     break;
                 case LOCKED:
-                    runFlywheel(700 + speedOffset);
-                    setHoodPos(0);
+                    runFlywheel(1500 + speedOffset);
+                    setHoodPos(8);
             }
         } else {
             motor.setPower(0);
@@ -104,7 +106,7 @@ public class Flywheel {
     }
 
     public void track(double distance) {
-        int ticks = (int) (4 * distance + 1328 + speedOffset);
+        int ticks = (int) (20 * distance + 600 + speedOffset);
         runFlywheel(ticks);
         double hoodAngle = 2 * distance - 88;
         setHoodPos(hoodAngle);
@@ -113,14 +115,19 @@ public class Flywheel {
     public void runFlywheel(int target) {
         int currentSpeed = (int) motor.getVelocity();
         int error = target - currentSpeed;
-
         double currentVoltage = batterySensor.getVoltage();
         double voltageOffset = Range.clip(((12 / currentVoltage) * 1.1), 1, 1.5);
 
         double power = (((P *  error + F * target) / 1000 + C) * voltageOffset);
         motor.setPower(power);
+        flywheelTarget = target;
 
         telemetry.addData("voltageOffset", voltageOffset);
+    }
+
+    public boolean isAtSpeed() {
+        int error = flywheelTarget - (int) motor.getVelocity();
+        return error > -SPEED_TOLERANCE && error < SPEED_TOLERANCE;
     }
 
     public void resetOffset() {

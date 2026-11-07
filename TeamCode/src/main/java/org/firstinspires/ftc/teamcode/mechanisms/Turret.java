@@ -27,13 +27,13 @@ public class Turret {
         double relativeY;
         switch(tracking) {
             case TRACK_A:
-                relativeX = 60 - shooterX;
+                relativeX = 58 - shooterX;
                 relativeY = 54 - shooterY;
                 aim(relativeX, relativeY, h);
                 break;
             case TRACK_B:
-                relativeX = 60 - shooterX;
-                relativeY = 90 - shooterY;
+                relativeX = 58 - shooterX;
+                relativeY = 56 - shooterY;
                 aim(relativeX, relativeY, h);
                 break;
             case LOCKED:
@@ -57,7 +57,7 @@ public class Turret {
     }
 
     private void aim(double relativeX, double relativeY, double robotH) {
-        double hAbsolute = AngleUnit.normalizeDegrees(Math.toDegrees(Math.atan2(relativeY, relativeX)) - 90);
+        double hAbsolute = AngleUnit.normalizeDegrees(Math.toDegrees(Math.atan2(relativeY, relativeX)));
         double hRelative = AngleUnit.normalizeDegrees(hAbsolute - robotH);
         setAngle(hRelative);
     }
