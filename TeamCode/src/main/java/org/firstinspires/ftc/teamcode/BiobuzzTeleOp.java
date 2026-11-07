@@ -1,40 +1,50 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.pedropathing.drivetrain.DrivePowers;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.follower.ManualDrive;
+import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.mechanisms.Drivetrain;
 import org.firstinspires.ftc.teamcode.mechanisms.Flywheel;
 import org.firstinspires.ftc.teamcode.mechanisms.Intake;
 import org.firstinspires.ftc.teamcode.mechanisms.Turret;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-@Disabled
+@TeleOp
 public class BiobuzzTeleOp extends OpMode {
 
-    private boolean shooterLocked = false;
-    private final Drivetrain drivetrain = new Drivetrain();
+    private Follower follower;
     private final Flywheel flywheel = new Flywheel();
     private final Intake intake = new Intake();
     private final Turret turret = new Turret();
     private final ElapsedTime gateDelay = new ElapsedTime();
-    private boolean trackGateDelay = false;
+    private boolean shooting = false;
+    private double speed = 1;
+    private boolean shooterLocked = false;
 
     @Override
     public void init() {
-        drivetrain.init(hardwareMap);
+        Pose startPose = new Pose(0, 60, Math.toRadians(90));
+        follower = Constants.create(hardwareMap);
+        follower.setPose(startPose);
         flywheel.init(hardwareMap, telemetry);
         intake.init(hardwareMap, telemetry);
         turret.init(hardwareMap, telemetry);
+        flywheel.setState(Flywheel.State.CLOSED);
+        flywheel.setTracking(Flywheel.Tracking.TRACK_A);
+        turret.setTracking(Turret.Tracking.TRACK_A);
+        telemetry.addLine("Initialized");
     }
 
     @Override
     public void loop() {
 
-        double x = drivetrain.getX();
-        double y = drivetrain.getY();
-        double h = drivetrain.getH();
+        double x = follower.pose().x();
+        double y = follower.pose().y();
+        double h = follower.pose().heading();
 
         if(!shooterLocked) {
             if (y < 48) {
@@ -57,10 +67,16 @@ public class BiobuzzTeleOp extends OpMode {
                 turret.addOffset(-10);
             }
         } else {
-            if(gamepad2.a) {
-                flywheel.setState(Flywheel.State.SHOOTING);
+            if(gamepad2.aWasPressed()) {
+                gateDelay.reset();
+                shooting = true;
+            } else if(gamepad2.a) {
+                if(gateDelay.seconds() >= 0.3) {
+                    flywheel.setState(Flywheel.State.SHOOTING);
+                }
             } else if(gamepad2.aWasReleased()) {
                 flywheel.setState(Flywheel.State.CLOSED);
+                shooting = false;
             } else if(gamepad2.dpadUpWasPressed()) {
                 flywheel.setState(Flywheel.State.CLOSED);
             } else if(gamepad2.dpadDownWasPressed()) {
@@ -68,16 +84,28 @@ public class BiobuzzTeleOp extends OpMode {
             }
         }
 
-        if(flywheel.getState() == Flywheel.State.SHOOTING) {
+        if(shooting) {
             intake.set(Intake.State.FEED);
         } else {
-            intake.set(Intake.State.RUN, gamepad2.right_trigger);
+            if(gamepad2.right_trigger > 0) {
+                intake.set(Intake.State.RUN, gamepad2.right_trigger);
+            } else if(gamepad2.left_trigger > 0) {
+                intake.set(Intake.State.SPIT);
+            } else {
+                intake.set(Intake.State.IDLE);
+            }
+        }
+
+        if(gamepad2.bWasPressed()) {
+            intake.setFlowerIntaking(true);
+        } else if (gamepad2.bWasReleased()) {
+            intake.setFlowerIntaking(false);
         }
 
         if(gamepad1.leftTriggerWasPressed()) {
-            drivetrain.setSpeed(0.4);
+            speed = 0.4;
         } else if(gamepad1.leftTriggerWasReleased()) {
-            drivetrain.setSpeed(1);
+            speed = 1;
         }
 
         if(gamepad2.leftTriggerWasPressed()) {
@@ -90,12 +118,19 @@ public class BiobuzzTeleOp extends OpMode {
         }
 
         if(gamepad1.a) {
-            drivetrain.resetTracking();
+            Pose resetPose = new Pose(9, 9, Math.toRadians(90));
+            follower.setPose(resetPose);
         }
 
-        drivetrain.drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
+        DrivePowers powers = ManualDrive.fieldCentric(
+                -gamepad1.left_stick_y * speed,
+                -gamepad1.left_stick_x * speed,
+                -gamepad1.right_stick_x * speed,
+                follower.pose().heading()
+        );
+        ManualDrive.driveOrHold(follower, powers);
 
-        drivetrain.update();
+        follower.update();
         intake.update();
         flywheel.update(x, y, h);
         turret.update(x, y, h);
