@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -19,17 +20,16 @@ public class BiobuzzAuto extends OpMode {
     private final Intake intake = new Intake();
     private final Turret turret = new Turret();
     private enum State {
-        SPIN_UP,
-        SHOOT,
-        DRIVE_SHOOT_GARDEN,
-        DRIVE_INTAKE_GARDEN,
-        DRIVE_GARDEN_SHOOT2,
+        SPIN_UP_1,
+        SHOOT_1,
+        DRIVE_A_GARDEN,
+        DRIVE_GARDEN,
+        DRIVE_GARDEN_SHOOT_2,
         SPIN_UP_2,
-        SHOOT2,
-        PARK,
-        BACKUP
+        SHOOT_2,
+        DRIVE_PARK
     }
-    private State state = State.SPIN_UP;
+    private State state = State.SPIN_UP_1;
     private State lastState = null;
     private boolean isFirstRun;
     private final ElapsedTime stateTimer = new ElapsedTime();
@@ -67,48 +67,52 @@ public class BiobuzzAuto extends OpMode {
         telemetry.addData("state", state);
     }
 
-    private void handleState() {
-        telemetry.addData("flywheel at speed", flywheel.isAtSpeed());
+    @Override
+    public void stop() {
+        Pose currentPose = follower.pose();
+        OpModeStorage.save(currentPose, turret.getCurrentPosition());
+    }
 
+    private void handleState() {
         lastState = state;
 
         switch(state) {
-            case SPIN_UP:
+            case SPIN_UP_1:
                 if(isFirstRun) {
                     flywheel.setState(Flywheel.State.CLOSED);
-                    intake.set(Intake.State.IDLE);
-                } else if(stateTimer.seconds() > 3 || flywheel.isAtSpeed()) {
-                    setState(State.SHOOT);
+                    intake.set(Intake.State.FEED);
+                } else if(stateTimer.seconds() > 4 || flywheel.isAtSpeed()) {
+                    setState(State.SHOOT_1);
                 }
                 break;
-            case SHOOT:
+            case SHOOT_1:
                 if(isFirstRun) {
                     flywheel.setState(Flywheel.State.AUTO_SHOOTING);
                     intake.set(Intake.State.FEED);
                 } else if(flywheel.getState() == Flywheel.State.IDLE) {
-                    setState(State.DRIVE_SHOOT_GARDEN);
+                    setState(State.DRIVE_A_GARDEN);
                 }
                 break;
-            case DRIVE_SHOOT_GARDEN:
+            case DRIVE_A_GARDEN:
                 if(isFirstRun) {
                     intake.set(Intake.State.IDLE);
                     follower.follow(Paths.bg1());
                 } else if(!follower.isBusy()) {
-                    setState(State.DRIVE_INTAKE_GARDEN);
+                    setState(State.DRIVE_GARDEN);
                 }
                 break;
-            case DRIVE_INTAKE_GARDEN:
+            case DRIVE_GARDEN:
                 if(isFirstRun) {
                     intake.set(Intake.State.RUN);
                     follower.follow(Paths.g1g2());
-                } else if(stateTimer.seconds() >= 3) {
-                    setState(State.DRIVE_GARDEN_SHOOT2);
+                } else if(stateTimer.seconds() >= 7) {
+                    setState(State.DRIVE_GARDEN_SHOOT_2);
                 }
                 break;
-            case DRIVE_GARDEN_SHOOT2:
+            case DRIVE_GARDEN_SHOOT_2:
                 if(isFirstRun) {
                     intake.set(Intake.State.IDLE);
-                    follower.follow(Paths.g2b());
+                    follower.follow(Paths.g2a());
                 } else if(!follower.isBusy()) {
                     setState(State.SPIN_UP_2);
                 }
@@ -118,33 +122,23 @@ public class BiobuzzAuto extends OpMode {
                     flywheel.setState(Flywheel.State.CLOSED);
                     intake.set(Intake.State.IDLE);
                 } else if(stateTimer.seconds() > 3 || flywheel.isAtSpeed()) {
-                    setState(State.SHOOT2);
+                    setState(State.SHOOT_2);
                 }
                 break;
-            case SHOOT2:
+            case SHOOT_2:
                 if(isFirstRun) {
                     flywheel.setState(Flywheel.State.AUTO_SHOOTING);
                     intake.set(Intake.State.FEED);
                 } else if(flywheel.getState() == Flywheel.State.IDLE) {
-                    setState(State.PARK);
+                    setState(State.DRIVE_PARK);
                 }
                 break;
-            case PARK:
+            case DRIVE_PARK:
                 if(isFirstRun) {
                     intake.set(Intake.State.IDLE);
-                    follower.follow(Paths.bp());
+                    follower.follow(Paths.ap());
                 }
                 break;
-            case BACKUP:
-                if(isFirstRun) {
-                    follower.follow(Paths.backup());
-                    intake.set(Intake.State.IDLE);
-                    flywheel.setState(Flywheel.State.IDLE);
-                }
-        }
-
-        if(autoTimer.seconds() >= 20 && state != State.PARK) {
-            setState(State.BACKUP);
         }
     }
 

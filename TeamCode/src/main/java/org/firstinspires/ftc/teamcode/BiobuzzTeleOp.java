@@ -28,8 +28,8 @@ public class BiobuzzTeleOp extends OpMode {
 
     @Override
     public void init() {
-        Pose startPose = new Pose(0, 60, Math.toRadians(90));
         follower = Constants.create(hardwareMap);
+        Pose startPose = OpModeStorage.getSavedPose();
         follower.setPose(startPose);
         flywheel.init(hardwareMap, telemetry);
         intake.init(hardwareMap, telemetry);
@@ -37,6 +37,7 @@ public class BiobuzzTeleOp extends OpMode {
         flywheel.setState(Flywheel.State.CLOSED);
         flywheel.setTracking(Flywheel.Tracking.TRACK_A);
         turret.setTracking(Turret.Tracking.TRACK_A);
+        turret.setCurrentPosition(OpModeStorage.getSavedTurretPos());
         telemetry.addLine("Initialized");
     }
 
