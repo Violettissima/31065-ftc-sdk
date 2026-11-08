@@ -48,11 +48,11 @@ public class BiobuzzTeleOp extends OpMode {
 
         if(!shooterLocked) {
             if (y < 48) {
-                flywheel.setTracking(Flywheel.Tracking.TRACK_A);
-                turret.setTracking(Turret.Tracking.TRACK_A);
-            } else if (y > 96) {
                 flywheel.setTracking(Flywheel.Tracking.TRACK_B);
                 turret.setTracking(Turret.Tracking.TRACK_B);
+            } else if (y > 96) {
+                flywheel.setTracking(Flywheel.Tracking.TRACK_A);
+                turret.setTracking(Turret.Tracking.TRACK_A);
             }
         }
 

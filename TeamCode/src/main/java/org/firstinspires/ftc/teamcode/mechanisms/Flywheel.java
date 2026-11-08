@@ -72,24 +72,25 @@ public class Flywheel {
             switch(tracking) {
                 case TRACK_A:
                     relativeX = 58 - shooterX;
-                    relativeY = 54 - shooterY;
+                    relativeY = 86 - shooterY;
                     distance = Math.sqrt(Math.pow(relativeX, 2) + Math.pow(relativeY, 2));
                     track(distance);
                     break;
                 case TRACK_B:
                     relativeX = 58 - shooterX;
-                    relativeY = 86 - shooterY;
+                    relativeY = 54 - shooterY;
                     distance = Math.sqrt(Math.pow(relativeX, 2) + Math.pow(relativeY, 2));
                     track(distance);
                     break;
                 case LOCKED:
-                    runFlywheel(1500 + speedOffset);
+                    runFlywheel(1350 + speedOffset);
                     setHoodPos(8);
             }
         } else {
             motor.setPower(0);
-            setHoodPos(0);
         }
+
+        telemetry.addData("tracking", tracking);
     }
 
     public void init(HardwareMap hardwareMap, Telemetry telemetry) {
@@ -106,9 +107,9 @@ public class Flywheel {
     }
 
     public void track(double distance) {
-        int ticks = (int) (20 * distance + 600 + speedOffset);
+        int ticks = 1350;
         runFlywheel(ticks);
-        double hoodAngle = 2 * distance - 88;
+        double hoodAngle = 8;
         setHoodPos(hoodAngle);
     }
 

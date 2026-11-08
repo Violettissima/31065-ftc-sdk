@@ -28,12 +28,12 @@ public class Turret {
         switch(tracking) {
             case TRACK_A:
                 relativeX = 58 - shooterX;
-                relativeY = 54 - shooterY;
+                relativeY = 86 - shooterY;
                 aim(relativeX, relativeY, h);
                 break;
             case TRACK_B:
                 relativeX = 58 - shooterX;
-                relativeY = 56 - shooterY;
+                relativeY = 54 - shooterY;
                 aim(relativeX, relativeY, h);
                 break;
             case LOCKED:
@@ -62,16 +62,21 @@ public class Turret {
         setAngle(hRelative);
     }
 
-    public void resetOffset() {
-        encoderOffset = 0;
+    public int getCurrentPosition() {
+        return (int) (motor.getCurrentPosition() + encoderOffset);
     }
 
-    private void setAngle(double degrees) {
-        double safeDegrees = Range.clip(degrees, -135, 90);
-        motor.setTargetPosition((int) (safeDegrees / 360 * TICKS_PER_REV + encoderOffset));
+    public void setCurrentPosition(int position) {
+        encoderOffset = position - motor.getCurrentPosition();
     }
 
     public void addOffset(int offset) {
         encoderOffset += offset;
+    }
+
+
+    private void setAngle(double degrees) {
+        double safeDegrees = Range.clip(degrees, -135, 90);
+        motor.setTargetPosition((int) (safeDegrees / 360 * TICKS_PER_REV + encoderOffset));
     }
 }
