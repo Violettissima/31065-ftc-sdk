@@ -22,6 +22,7 @@ public class BiobuzzTeleOp extends OpMode {
     private final Turret turret = new Turret();
     private final ElapsedTime gateDelay = new ElapsedTime();
     private boolean shooting = false;
+    private boolean flywheelInterrupted = true;
     private double speed = 1;
     private boolean shooterLocked = false;
 
@@ -44,7 +45,7 @@ public class BiobuzzTeleOp extends OpMode {
 
         double x = follower.pose().x();
         double y = follower.pose().y();
-        double h = follower.pose().heading();
+        double h = Math.toDegrees(follower.pose().heading());
 
         if(!shooterLocked) {
             if (y < 48) {
@@ -89,10 +90,22 @@ public class BiobuzzTeleOp extends OpMode {
         } else {
             if(gamepad2.right_trigger > 0) {
                 intake.set(Intake.State.RUN, gamepad2.right_trigger);
+                if(flywheel.getState() == Flywheel.State.CLOSED) {
+                    flywheel.setState(Flywheel.State.IDLE);
+                    flywheelInterrupted = true;
+                }
             } else if(gamepad2.left_trigger > 0) {
                 intake.set(Intake.State.SPIT);
+                if(flywheel.getState() == Flywheel.State.CLOSED) {
+                    flywheel.setState(Flywheel.State.IDLE);
+                    flywheelInterrupted = true;
+                }
             } else {
                 intake.set(Intake.State.IDLE);
+                if(flywheelInterrupted) {
+                    flywheel.setState(Flywheel.State.CLOSED);
+                    flywheelInterrupted = false;
+                }
             }
         }
 
@@ -108,12 +121,11 @@ public class BiobuzzTeleOp extends OpMode {
             speed = 1;
         }
 
-        if(gamepad2.leftTriggerWasPressed()) {
+        if(gamepad2.yWasPressed()) {
             shooterLocked = !shooterLocked;
             if(shooterLocked) {
                 flywheel.setTracking(Flywheel.Tracking.LOCKED);
                 turret.setTracking(Turret.Tracking.LOCKED);
-                turret.resetOffset();
             }
         }
 
@@ -128,7 +140,7 @@ public class BiobuzzTeleOp extends OpMode {
                 -gamepad1.right_stick_x * speed,
                 follower.pose().heading()
         );
-        ManualDrive.driveOrHold(follower, powers);
+        follower.manual(powers);
 
         follower.update();
         intake.update();
