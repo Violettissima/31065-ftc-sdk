@@ -10,14 +10,14 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 @TeleOp
-public class GateFlywheelTest extends OpMode {
-    Servo swiper;
+public class ServoFlywheelTest extends OpMode {
+    Servo servo;
     double pos = 0;
     DcMotorEx flywheel;
 
     @Override
     public void init() {
-        swiper = hardwareMap.get(Servo.class, "right_roller");
+        servo = hardwareMap.get(Servo.class, "gate");
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         flywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flywheel.setMotorType(new MotorConfigurationType());
@@ -25,9 +25,9 @@ public class GateFlywheelTest extends OpMode {
 
     @Override
     public void loop() {
-        swiper.setPosition(pos);
+        servo.setPosition(pos);
         if(gamepad1.yWasPressed()) {
-            pos += 0.1;
+            pos += 0.01;
         } else if(gamepad1.aWasPressed()) {
             pos -= 0.1;
         }

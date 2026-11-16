@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.mechanisms.Intake;
@@ -15,13 +17,16 @@ public class FlywheelPowerTest extends OpMode {
     double hoodPos = 0;
     double minSpeed = 100000000;
     Intake intake = new Intake();
-    private final double P = 5;
-    private final double F = 0.54;
-    private final double C = 0.07;
+    private final double P = 1.5;
+    private final double F = 0.38;
+    private final double C = 0.09;
     private final double GATE_CLOSE_POS = 0.25;
     private final double GATE_OPEN_POS = 0.4;
     private int speed = 700;
+    private final ElapsedTime gateDelay = new ElapsedTime();
+    private boolean shooting = false;
     private DcMotorEx motor;
+    private VoltageSensor batterySensor;
     private Servo gate;
     private Servo hood;
     public enum State {
@@ -40,6 +45,7 @@ public class FlywheelPowerTest extends OpMode {
         gate = hardwareMap.get(Servo.class, "gate");
         hood = hardwareMap.get(Servo.class, "hood");
         gate.setPosition(GATE_CLOSE_POS);
+        batterySensor = hardwareMap.get(VoltageSensor.class, "Control Hub");
         intake.init(hardwareMap, telemetry);
     }
 
@@ -51,7 +57,7 @@ public class FlywheelPowerTest extends OpMode {
         }
         minSpeed = Math.min(minSpeed, motor.getVelocity());
 
-        if(state == State.SHOOTING) {
+        if(shooting) {
             intake.set(Intake.State.FEED);
         } else if(gamepad1.right_trigger > 0) {
             intake.set(Intake.State.RUN, gamepad1.right_trigger);
@@ -65,10 +71,16 @@ public class FlywheelPowerTest extends OpMode {
             speed -= 20;
         }
 
-        if(gamepad1.a) {
-            state = State.SHOOTING;
+        if(gamepad1.aWasPressed()) {
+            gateDelay.reset();
+            shooting = true;
+        } else if(gamepad1.a) {
+            if(gateDelay.seconds() >= 0.3) {
+                state = State.SHOOTING;
+            }
         } else if(gamepad1.aWasReleased()) {
             state = State.CLOSED;
+            shooting = false;
         } else if(gamepad1.dpadUpWasPressed()) {
             state = State.CLOSED;
         } else if(gamepad1.dpadDownWasPressed()) {
@@ -107,7 +119,11 @@ public class FlywheelPowerTest extends OpMode {
     public void runFlywheel(int target) {
         int currentSpeed = (int) motor.getVelocity();
         int error = target - currentSpeed;
-        motor.setPower((P *  error + F * target) / 1000 + C);
+        double currentVoltage = batterySensor.getVoltage();
+        double voltageOffset = Range.clip(((12 / currentVoltage) * 1.1), 1, 1.5);
+
+        double power = (((P *  error + F * target) / 1000 + C) * voltageOffset);
+        motor.setPower(power);
     }
 
     private void setHoodPos(double degrees) {

@@ -10,8 +10,8 @@ public class CustomFlywheelControllerTest extends OpMode {
     private double p = 0;
     private double f = 0;
     private double c = 0;
-    private int vel = 700;
-    double[] stepSizes = {1, 0.1, 0.01};
+    private int vel = 1000;
+    double[] stepSizes = {1, 0.1, 0.01, 0.001};
     int stepIndex = 0;
     private DcMotorEx motor;
 
@@ -29,10 +29,10 @@ public class CustomFlywheelControllerTest extends OpMode {
 
         telemetry.addData("vel", motor.getVelocity());
         if(gamepad1.rightTriggerWasPressed()) {
-            if(vel == 700) {
-                vel = 1000;
+            if(vel == 1000) {
+                vel = 1500;
             } else {
-                vel = 700;
+                vel = 1000;
             }
         }
 
