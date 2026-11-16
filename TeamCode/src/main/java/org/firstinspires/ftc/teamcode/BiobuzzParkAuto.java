@@ -1,33 +1,30 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.pedropathing.follower.Follower;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.mechanisms.Drivetrain;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
+import org.firstinspires.ftc.teamcode.pedro.Paths;
 
-@Autonomous
+@Disabled
 public class BiobuzzParkAuto extends OpMode {
 
-    ElapsedTime timer = new ElapsedTime();
-    Drivetrain drivetrain = new Drivetrain();
+    private Follower follower;
 
     @Override
     public void init() {
-        drivetrain.init(hardwareMap);
+        follower = Constants.create(hardwareMap);
+        follower.setPose(Paths.B);
     }
 
     @Override
     public void start() {
-        timer.reset();
+        follower.follow(Paths.sp());
     }
 
     @Override
     public void loop() {
-        if(timer.seconds() < 1) {
-            drivetrain.driveRobotCentric(0.5, 0, 0);
-        } else {
-            drivetrain.drive(0, 0, 0);
-        }
+        follower.update();
     }
 }

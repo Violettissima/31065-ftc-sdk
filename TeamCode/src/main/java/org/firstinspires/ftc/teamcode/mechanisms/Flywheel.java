@@ -16,11 +16,10 @@ public class Flywheel {
     private final double F = 0.38;
     private final double C = 0.09;
     private final double SPEED_TOLERANCE = 20;
-    private final double GATE_CLOSE_POS = 0.25;
+    private final double GATE_CLOSE_POS = 0.18;
     private final double GATE_OPEN_POS = 0.4;
     private int flywheelTarget = 0;
     private int speedOffset = 0;
-    private final ElapsedTime stateTimer = new ElapsedTime();
     private DcMotorEx motor;
     private Servo gate;
     private Servo hood;
@@ -32,7 +31,6 @@ public class Flywheel {
     }
     private Tracking tracking = Tracking.TRACK_A;
     public enum State {
-        AUTO_SHOOTING,
         SHOOTING,
         CLOSED,
         IDLE
@@ -44,10 +42,6 @@ public class Flywheel {
         telemetry.addData("velocity", motor.getVelocity());
 
         switch(state) {
-            case AUTO_SHOOTING:
-                if(stateTimer.seconds() >= 2) {
-                    setState(State.IDLE);
-                }
             case SHOOTING:
                 if(gate.getPosition() != GATE_OPEN_POS) {
                     gate.setPosition(GATE_OPEN_POS);
@@ -83,8 +77,8 @@ public class Flywheel {
                     track(distance);
                     break;
                 case LOCKED:
-                    runFlywheel(1350 + speedOffset);
-                    setHoodPos(8);
+                    runFlywheel(1240 + speedOffset);
+                    setHoodPos(9);
             }
         } else {
             motor.setPower(0);
@@ -107,9 +101,9 @@ public class Flywheel {
     }
 
     public void track(double distance) {
-        int ticks = 1350;
+        int ticks = 1240;
         runFlywheel(ticks);
-        double hoodAngle = 8;
+        double hoodAngle = 9;
         setHoodPos(hoodAngle);
     }
 
@@ -144,7 +138,6 @@ public class Flywheel {
     }
 
     public void setState(State state) {
-        stateTimer.reset();
         this.state = state;
     }
 
