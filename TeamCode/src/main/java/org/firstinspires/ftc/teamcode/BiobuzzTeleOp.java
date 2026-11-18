@@ -91,18 +91,18 @@ public class BiobuzzTeleOp extends OpMode {
         } else {
             if(gamepad2.right_trigger > 0) {
                 intake.set(Intake.State.RUN, gamepad2.right_trigger);
-                if(flywheel.getState() == Flywheel.State.CLOSED) {
-                    flywheel.setState(Flywheel.State.IDLE);
-                    flywheelInterrupted = true;
-                }
             } else if(gamepad2.left_trigger > 0) {
-                intake.set(Intake.State.SPIT);
-                if(flywheel.getState() == Flywheel.State.CLOSED) {
-                    flywheel.setState(Flywheel.State.IDLE);
-                    flywheelInterrupted = true;
-                }
+                intake.set(Intake.State.PARTIAL_EJECT);
+            } else if(gamepad2.right_stick_button) {
+                intake.set(Intake.State.FULL_EJECT);
             } else {
                 intake.set(Intake.State.IDLE);
+            }
+
+            if(intake.getState() != Intake.State.IDLE && flywheel.getState() == Flywheel.State.CLOSED) {
+                flywheel.setState(Flywheel.State.IDLE);
+                flywheelInterrupted = true;
+            } else if(intake.getState() == Intake.State.IDLE){
                 if(flywheelInterrupted) {
                     flywheel.setState(Flywheel.State.CLOSED);
                     flywheelInterrupted = false;
